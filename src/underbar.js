@@ -119,19 +119,66 @@
   _.reject = function(collection, test) {
     // TIP: see if you can re-use _.filter() here, without simply
     // copying code in and modifying it
-    return _.filter(collection, !test)
+    var result = [];
+    _.each(collection, function(element) {
+      if (!test(element)) {
+        result.push(element);
+      }
+    })
+    return result;
   };
 
   // Produce a duplicate-free version of the array.
+  //input: array, isSorted === undefined, iterator === undefined; [1, 2, 1, 3, 1, 4]
+  //output: array [1, 2, 3, 4]
+  //use each method to iterate through input array 
+  //use index method and if element does not exist in result array, then store into result array 
+
+  //input: array, isSorted, iterator; [1, 2, 2, 3, 4, 4], true, function(value) { return value === 1; }
+  //output: array [1, 2]
+  //use each method to iterate through input array
+  //take each element and pass into iterator function; true, false, false, false, false, false 
+  //store into iteratorResult array
+  //use uniq method on iteratorResult and to return result 
+
   _.uniq = function(array, isSorted, iterator) {
+    var result = [];
+    var iteratorResult = [];
+    if (isSorted === undefined && iterator === undefined) {
+      _.each(array, function(element) {
+        if (_.indexOf(result, element) === -1) {
+          result.push(element);
+        }
+      })
+    }
+    else {
+      _.each(array, function(element) {
+        if (_.indexOf(iteratorResult, iterator(element)) === -1) {
+          iteratorResult.push(iterator(element));
+          result.push(element);
+        };
+      })
+    }
+    return result;
   };
 
 
   // Return the results of applying an iterator to each element.
+
+  //input: array, iterator 
+  //output: array
+  //use each method to access each element of input array
+  //pass each element into iterator 
+  //store it into results array 
   _.map = function(collection, iterator) {
     // map() is a useful primitive iteration function that works a lot
     // like each(), but in addition to running the operation on all
     // the members, it also maintains an array of results.
+    var result = [];
+    _.each(collection, function(element) {
+      result.push(iterator(element));
+    })
+    return result;
   };
 
   /*
@@ -172,7 +219,33 @@
   //     return total + number * number;
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
+
+  //input: array, iterator, accumulator, 
+  //output: accumulator  
+  //use each method
+  //pass accumulator and each number in array into iterator
+  //set accumulator as the result of iterator 
+
+  //input: array, iterator, accumulator === undefined
+  //output: number
+  //set accumulator as first element 
+  //use for loop to iterate through input array (start from second element and end at length)
+  //pass accumulator and second element into iterator
+  //set accumulator as result of itertor 
+
   _.reduce = function(collection, iterator, accumulator) {
+    if (accumulator === undefined) {
+      var accumulator = collection[0];
+      for (var i = 1; i < collection.length; i++) {
+        accumulator = iterator(accumulator, collection[i]);
+      }
+    }
+    else {
+      _.each(collection, function(element) {
+        accumulator = iterator(accumulator, element);
+      })
+    }
+    return accumulator;
   };
 
   // Determine if the array or object contains a given value (using `===`).
