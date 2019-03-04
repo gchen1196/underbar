@@ -249,27 +249,62 @@
   };
 
   // Determine if the array or object contains a given value (using `===`).
-  _.contains = function(collection, target) {
+  _.contains = function(collection, target) { //[4, 5, 6], 2
     // TIP: Many iteration problems can be most easily expressed in
     // terms of reduce(). Here's a freebie to demonstrate!
-    return _.reduce(collection, function(wasFound, item) {
-      if (wasFound) {
+    return _.reduce(collection, function(wasFound, item) { //reduce([4, 5, 6], function, false) 
+      if (wasFound) { //function(false, 4), function(false, 5)
         return true;
       }
-      return item === target;
+      return item === target; // false, false 
     }, false);
   };
 
 
   // Determine whether all of the elements match a truth test.
-  _.every = function(collection, iterator) {
+  //input: array, iterator
+  //ouput: boolean
+  //use reduce, start with true 
+  //if iterator(element) === false, return false 
+  _.every = function(collection, iterator) { //[2, 3, 4], function(i%2 === 0)
     // TIP: Try re-using reduce() here.
+    if (iterator === undefined) {
+      if (_.contains(collection, false)) {
+        return false; 
+      }
+      return true; 
+    }
+    return _.reduce(collection, function(passed, element) { //reduce([2, 3, 4], function(true, 2), true)
+      if (!iterator(element)) {
+        return false; 
+      }
+      return passed;
+    }, true)
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
+  // [true, false, 1], _.identity)
+  //iterate through array. pass iterator to each element, if true, then return true. return false if none 
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+    if (iterator === undefined) {
+      if (_.contains(collection, true)) {
+        return true; 
+      }
+      return false; 
+    }
+    if (collection === []) {
+      return false; 
+    }
+    //every returns true if iterator is true for all element
+    //need at least 1 element that passes the iterator to be TRUE
+    //element that doesn't pass any of the iterator => false => ! => true => return !true for some function
+    //all element passes the iterator => true => ! => false => return !false for some function
+    //at least 1 element that passes the iterator [2, 3, 4], find evens => false, true, false => false => return !false for some function
+    return !(_.every(collection, function(element) {
+      return !iterator(element);
+    }));
   };
 
 
@@ -291,12 +326,39 @@
   //   }, {
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
+  //add more key value pairs into obj1 
+  //input: obj
+  //output: obj
+  //like push but for obj 
+  //use arguments ({age: 50})
+  //use for loop to iterate through arguments 
+  //set each key value pair of arguments as object's key value pair
   _.extend = function(obj) {
+    for (var i = 0; i < arguments.length; i++) {
+      var addObj = arguments[i];
+      for (var key in addObj) {
+        obj[key] = addObj[key];
+      }
+    }
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
+  //if key in obj already; then obj[key]
   _.defaults = function(obj) {
+    for (var i = 0; i < arguments.length; i++) {
+      var addObj = arguments[i];
+      for (var key in addObj) {
+        if (key in obj) {
+          obj[key];
+        }
+        else {
+          obj[key] = addObj[key];
+        }
+      }
+    }
+    return obj;
   };
 
 
@@ -339,7 +401,27 @@
   // _.memoize should return a function that, when called, will check if it has
   // already computed the result for the given argument and return that value
   // instead if possible.
+
+  //input: function, hashFunction
+  //output: function
+  //check if result is returned 
+  //var add = function(a, b) {return a + b}
+  //memoadd = _.memoize(add)
+  //invoke memoadd(1, 3) => 4
   _.memoize = function(func) {
+    var cache = {};
+    return function() {
+      var objArg = {};
+      _.each(arguments, function(value, key) {
+        objArg[key] = value;
+      })
+      var stringArg = JSON.stringify(objArg); 
+
+      if(cache[stringArg] === undefined) {
+        cache[stringArg] = func.apply(this, arguments);
+      }
+      return cache[stringArg];
+    }
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -348,7 +430,15 @@
   // The arguments for the original function are passed after the wait
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
+
+  //setTimeout(function(){ alert("Hello"); }, 3000);
+  //Display an alert box after 3 seconds (3000 milliseconds)
+
   _.delay = function(func, wait) {
+    var arrayArg = Array.prototype.slice.call(arguments, 2); //['a', 'b']
+    return setTimeout(function() {
+      return func.apply(this, arrayArg); 
+    }, wait);
   };
 
 
@@ -362,7 +452,30 @@
   // TIP: This function's test suite will ask that you not modify the original
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
-  _.shuffle = function(array) {
+
+  //input: array
+  //output: array 
+  //start with index of 3 from length of newArr
+
+  //decrease index by 1 
+  //get random number (random) by multiplying 2 to 0 - 1 (math.random) => (0, 1, 2)
+  //use that random index and to get corresponding value of newArr => value = newArr[random]
+  //replace that value with value of newArr[index]
+  //do it 3 times 
+  _.shuffle = function(array) { //[1, 2, 3]
+    var newArr = array.slice(); //[1, 2, 3]
+    var index = newArr.length; //3
+    var randomIndex = 0;
+    var value = 0;
+    while (index > 0) {
+      index -= 1; //2
+      randomIndex = Math.floor(Math.random() * index); //(0, 1, or 2); randomly got 1
+      value = newArr[index]; //3
+      newArr[index] = newArr[randomIndex]; //change [1, 2, 3] => [1, 2, 2]
+      newArr[randomIndex] = value;  
+    } 
+    return newArr; 
+     
   };
 
 
